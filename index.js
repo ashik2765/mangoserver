@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require('express')
+const jwt = require("jsonwebtoken");
 const cors = require("cors")
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
@@ -8,6 +9,18 @@ const port = process.env.PORT || 4000
 //midleware
 app.use(cors());
 app.use(express.json());
+
+//jwt
+function createToken(user) {
+    const token = jwt.sign(
+        {
+            email: user.email,
+        },
+        "secret",
+        { expiresIn: "7d" }
+    );
+    return token;
+}
 
 //mongodb config
 const uri = process.env.DATABASE_URL;
@@ -67,13 +80,14 @@ async function run() {
         //user route will be here
         app.post("/user", async (req, res) => {
             const user = req.body;
+            const token = createToken(user)
             const isUserExist = await mangoUserCollection.findOne({ email: user?.email })
 
             if (isUserExist?._id) {
-                return res.send("Login success")
+                return res.send({ token })
             }
-            const result = await mangoUserCollection.insertOne(user)
-            res.send(result);
+            await mangoUserCollection.insertOne(user)
+            res.send({ token });
         });
         app.get("/user/get/:id", async (req, res) => {
             const id = req.params.id;
