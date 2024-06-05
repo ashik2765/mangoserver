@@ -79,13 +79,23 @@ async function run() {
             const id = req.params.id;
             const result = await mangoUserCollection.findOne({ _id: new ObjectId(id) })
             res.send(result);
-        })
+        });
         app.get("/user/:email", async (req, res) => {
             const email = req.params.email;
             const result = await mangoUserCollection.findOne({ email })
             res.send(result);
 
-        })
+        });
+        app.patch("/user/:id", async (req, res) => {
+            const id = req.params.id;
+            const userInfo = req.body;
+            const result = await mangoUserCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: userInfo },
+                { upsert: true }
+            )
+            res.send(result)
+        });
 
 
         console.log("Mongodb is connected");
