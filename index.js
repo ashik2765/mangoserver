@@ -20,7 +20,17 @@ function createToken(user) {
         { expiresIn: "7d" }
     );
     return token;
-}
+};
+function verifyToken(req, res, next) {
+    const token = req.headers.authorization.split(" ")[1];
+    const verify = jwt.verify(token, "secret");
+    if (!verify?.email) {
+      return res.send("You are not authorized");
+    }
+    req.user = verify.email;
+    next();
+  };
+
 
 //mongodb config
 const uri = process.env.DATABASE_URL;
@@ -46,7 +56,7 @@ async function run() {
 
 
         //routers
-        app.post('/mangos', async (req, res) => {
+        app.post('/mangos',verifyToken, async (req, res) => {
             const mangosData = req.body;
             const result = await mangoCollection.insertOne(mangosData);
             res.send(result);
@@ -61,7 +71,7 @@ async function run() {
             const mangoData = await mangoCollection.findOne({ _id: new ObjectId(id) })
             res.send(mangoData);
         });
-        app.patch('/mangos/:id', async (req, res) => {
+        app.patch('/mangos/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const updatedData = req.body;
             const result = await mangoCollection.updateOne(
@@ -71,7 +81,7 @@ async function run() {
             )
             res.send(result);
         });
-        app.delete("/mangos/:id", async (req, res) => {
+        app.delete("/mangos/:id",verifyToken, async (req, res) => {
             const id = req.params.id;
             const result = await mangoCollection.deleteOne({ _id: new ObjectId(id) })
             res.send(result);
