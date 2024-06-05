@@ -3,7 +3,7 @@ const express = require('express')
 const cors = require("cors")
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
-const port = process.env.PORT || 4000 
+const port = process.env.PORT || 4000
 
 //midleware
 app.use(cors());
@@ -75,6 +75,11 @@ async function run() {
             const result = await mangoUserCollection.insertOne(user)
             res.send(result);
         });
+        app.get("/user/get/:id", async (req, res) => {
+            const id = req.params.id;
+            const result = await mangoUserCollection.findOne({ _id: new ObjectId(id) })
+            res.send(result);
+        })
         app.get("/user/:email", async (req, res) => {
             const email = req.params.email;
             const result = await mangoUserCollection.findOne({ email })
